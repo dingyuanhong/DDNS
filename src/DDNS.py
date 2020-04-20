@@ -15,26 +15,21 @@ import time
 import argparse
 
 def DDNS(use_v6):
-    client = Utils.getAcsClient()
-    recordId = Utils.getRecordId(Utils.getConfigJson().get('Second-level-domain'))
     if use_v6:
         ip = Utils.getRealIPv6()
         type = 'AAAA'
     else:
         ip = Utils.getRealIP()
         type = 'A'
-    print({'type': type, 'ip':ip})
 
-    request = Utils.getCommonRequest()
-    request.set_domain('alidns.aliyuncs.com')
-    request.set_version('2015-01-09')
-    request.set_action_name('UpdateDomainRecord')
-    request.add_query_param('RecordId', recordId)
-    request.add_query_param('RR', Utils.getConfigJson().get('Second-level-domain'))
-    request.add_query_param('Type', type)
-    request.add_query_param('Value', ip)
-    response = client.do_action_with_exception(request)
-    return response
+    client = Utils.getAcsClient()
+    record = Utils.getRecord(Utils.getConfigJson().get('Second-level-domain'))
+    # recordId = Utils.getRecordId(Utils.getConfigJson().get('Second-level-domain'))
+    recordId = record["RecordId"]
+    if(record["Value"] != ip):
+        Utils.setRecordIdIp(recordId,type,ip)
+    else:
+        print("IP无需更改,一致为:"+ip)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='DDNS')
@@ -46,7 +41,7 @@ if __name__ == "__main__":
         while not Utils.isOnline():
             time.sleep(3)
             continue
-        result = DDNS(isipv6)
+        DDNS(isipv6)
         print("成功！")
     except (ServerException,ClientException) as reason:
         print("失败！原因为")

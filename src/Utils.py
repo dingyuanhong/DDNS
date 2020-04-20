@@ -42,6 +42,34 @@ class Utils:
             if each["RR"] == domain:
                 return each["RecordId"]
 
+    def getRecord(domain):
+        client = Utils.getAcsClient()
+        request = Utils.getCommonRequest()
+        request.set_domain('alidns.aliyuncs.com')
+        request.set_version('2015-01-09')
+        request.set_action_name('DescribeDomainRecords')
+        request.add_query_param('DomainName', Utils.getConfigJson().get('First-level-domain'))
+        response = client.do_action_with_exception(request)
+        jsonObj = json.loads(response.decode("UTF-8"))
+        records = jsonObj["DomainRecords"]["Record"]
+        for each in records:
+            if each["RR"] == domain:
+                return each
+
+    def setRecordIdIp(recordId,type,value):
+        print({'type': type, 'value':value})
+        client = Utils.getAcsClient()
+        request = Utils.getCommonRequest()
+        request.set_domain('alidns.aliyuncs.com')
+        request.set_version('2015-01-09')
+        request.set_action_name('UpdateDomainRecord')
+        request.add_query_param('RecordId', recordId)
+        request.add_query_param('RR', Utils.getConfigJson().get('Second-level-domain'))
+        request.add_query_param('Type', type)
+        request.add_query_param('Value', value)
+        response = client.do_action_with_exception(request)
+        return response
+
     #获取CommonRequest
     def getCommonRequest():
         return CommonRequestSing.getInstance()
